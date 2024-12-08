@@ -2,8 +2,28 @@ const fs = require("fs");
 const path = require("path");
 
 const dedup = (inputPath) => {
-  const rawData = fs.readFileSync(inputPath, "utf8");
-  const { leads } = JSON.parse(rawData);
+  let rawData;
+  try {
+    rawData = fs.readFileSync(inputPath, "utf8");
+  } catch (error) {
+    console.error("Error reading the file:", error.message);
+    process.exit(1);
+  }
+
+  let parsedData;
+  try {
+    parsedData = JSON.parse(rawData);
+  } catch (error) {
+    console.error("Invalid JSON format:", error.message);
+    process.exit(1);
+  }
+
+  if (!Array.isArray(parsedData?.leads)) {
+    console.error("The JSON file must contain a 'leads' array.");
+    process.exit(1);
+  }
+
+  const { leads } = parsedData;
 
   const idMap = new Map();
   const emailMap = new Map();
