@@ -60,6 +60,7 @@ const dedup = (inputPath) => {
   });
 
   idMap.forEach((lead) => {
+    lead.email = lead.email.toLowerCase();
     emailMap.set(lead.email, resolveDuplicates(emailMap.get(lead.email), lead));
   });
 
