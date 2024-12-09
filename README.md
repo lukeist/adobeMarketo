@@ -5,17 +5,19 @@ This script removes duplicate leads in a JSON file based on two criteria:
 1. Unique lead IDs (`_id`).
 2. Unique emails (`email`).
 
-It keeps the latest version based on `entryDate` and creates two output files:
+It keeps the latest version based on `entryDate`, validates data integrity, and creates three output files:
 
 - `deduplicated_leads.json`: The deduplicated leads.
 - `change_log.json`: A log of changes made.
+- `skipped_records.json`: Records skipped due to missing or invalid data.
 
 ## How It Works
 
 1. Reads a JSON file with lead data.
-2. Removes duplicates by `_id` and `email`.
-3. Logs changes between original and updated records.
-4. Saves the deduplicated leads and the change log in an `output/` folder.
+2. Filters out invalid records missing `_id`, `email`, or `entryDate`, or containing invalid date formats.
+3. Removes duplicates by `_id` and `email`.
+4. Logs changes between original and updated records.
+5. Saves the deduplicated leads, the change log, and skipped records in an `output/` folder.
 
 ## How to Run
 
@@ -103,6 +105,7 @@ In all options, the following files will be created inside the `output/` folder:
 
 - `deduplicated_leads.json`: The deduplicated leads.
 - `change_log.json`: The change log.
+- `skipped_records.json`: Records with missing or invalid data.
 
 ## Requirements
 
