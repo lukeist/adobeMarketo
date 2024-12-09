@@ -23,7 +23,19 @@ const dedup = (inputPath) => {
     process.exit(1);
   }
 
-  const { leads } = parsedData;
+  const skippedRecords = [];
+  const validLeads = parsedData.leads.filter((lead) => {
+    if (
+      !lead._id ||
+      !lead.email ||
+      !lead.entryDate ||
+      isNaN(new Date(lead.entryDate).getTime())
+    ) {
+      skippedRecords.push(lead);
+      return false;
+    }
+    return true;
+  });
 
   const idMap = new Map();
   const emailMap = new Map();
@@ -34,7 +46,7 @@ const dedup = (inputPath) => {
 
     const existingDate = new Date(existing.entryDate).getTime();
     const currentDate = new Date(current.entryDate).getTime();
-    if (currentDate > existingDate || currentDate === existingDate) {
+    if (currentDate >= existingDate) {
       logChange(existing, current);
       return current;
     }
@@ -51,11 +63,10 @@ const dedup = (inputPath) => {
       },
       {}
     );
-
     changes.push({ oldRecord, updatedRecord, fieldChanges });
   };
 
-  leads.forEach((lead) => {
+  validLeads.forEach((lead) => {
     idMap.set(lead._id, resolveDuplicates(idMap.get(lead._id), lead));
   });
 
@@ -76,15 +87,23 @@ const dedup = (inputPath) => {
     "deduplicated_leads.json"
   );
   const changeLogPath = path.join(outputPath, "change_log.json");
+  const skippedRecordsPath = path.join(outputPath, "skipped_records.json");
 
   fs.writeFileSync(
     deduplicatedLeadsPath,
     JSON.stringify({ leads: dedupedLeads }, null, 2)
   );
   fs.writeFileSync(changeLogPath, JSON.stringify(changes, null, 2));
+  if (skippedRecords.length)
+    fs.writeFileSync(
+      skippedRecordsPath,
+      JSON.stringify({ skippedRecords }, null, 2)
+    );
 
   console.log(`Deduplicated leads saved to: ${deduplicatedLeadsPath}`);
   console.log(`Change log saved to: ${changeLogPath}`);
+  if (skippedRecords.length)
+    console.log(`Skipped records saved to: ${skippedRecordsPath}`);
 };
 
 const inputFile = process.argv[2];
